@@ -3,18 +3,199 @@ const explanation = require('./explanation');
 /**
  * Core matching engine.
  * Optimizes for INTENT ALIGNMENT — not just similarity.
+ * Enhanced with dealbreakers, social compatibility, hobby categories, timing, and tier system.
  */
+
+// Hobby category groups
+const HOBBY_CATEGORIES = {
+  active: ['gaming', 'cricket', 'cycling', 'football', 'badminton', 'gym', 'running', 'swimming', 'hiking', 'sports'],
+  creative: ['painting', 'music', 'writing', 'photography', 'drawing', 'crafts', 'dance', 'singing'],
+  social: ['partying', 'cooking', 'travel', 'shopping', 'movies', 'dining'],
+  mindful: ['yoga', 'reading', 'meditation', 'gardening', 'journaling']
+};
+
+function getHobbyCategory(hobby) {
+  const h = hobby.toLowerCase();
+  for (const [category, hobbies] of Object.entries(HOBBY_CATEGORIES)) {
+    if (hobbies.some(cat => h.includes(cat) || cat.includes(h))) return category;
+  }
+  return 'other';
+}
+
+/**
+ * Hard dealbreaker filter — returns true if candidate should be rejected.
+ */
+function isDealbreakerViolation(seeker, candidate) {
+  const db = seeker.dealbreakers || {};
+
+  // No smokers dealbreaker
+  if (db.noSmokers && candidate.smoking) return { violated: true, reason: 'Smoker rejected by dealbreaker' };
+
+  // No drinkers dealbreaker
+  if (db.noDrinkers && candidate.drinking) return { violated: true, reason: 'Drinker rejected by dealbreaker' };
+
+  // Budget range ZERO overlap
+  const sMin = seeker.budgetRange?.min || 0;
+  const sMax = seeker.budgetRange?.max || 99999;
+  const cMin = candidate.budgetRange?.min || 0;
+  const cMax = candidate.budgetRange?.max || 99999;
+  if (Math.min(sMax, cMax) < Math.max(sMin, cMin)) {
+    return { violated: true, reason: 'Zero budget overlap' };
+  }
+
+  // Max budget dealbreaker
+  if (db.maxBudget && candidate.budgetRange?.min > db.maxBudget) {
+    return { violated: true, reason: 'Candidate budget exceeds max budget dealbreaker' };
+  }
+
+  // Gender preference
+  if (db.genderPreference && db.genderPreference !== 'any') {
+    if (db.genderPreference === 'same_gender' && seeker.gender !== candidate.gender) {
+      return { violated: true, reason: 'Gender preference mismatch' };
+    } else if (db.genderPreference === 'male' && candidate.gender !== 'male') {
+      return { violated: true, reason: 'Gender preference mismatch (male only)' };
+    } else if (db.genderPreference === 'female' && candidate.gender !== 'female') {
+      return { violated: true, reason: 'Gender preference mismatch (female only)' };
+    }
+  }
+
+  // Same city dealbreaker
+  if (db.sameCity && seeker.location?.city?.toLowerCase() !== candidate.location?.city?.toLowerCase()) {
+    return { violated: true, reason: 'Different city, same city required' };
+  }
+
+  return { violated: false };
+}
+
+/**
+ * Calculate move-in timing compatibility score (0-100).
+ */
+function computeTimingScore(seeker, candidate) {
+  if (!seeker.moveInDate || !candidate.moveInDate) return 50; // neutral if no date
+  const seekerDate = new Date(seeker.moveInDate);
+  const candidateDate = new Date(candidate.moveInDate);
+  const diffMs = Math.abs(seekerDate - candidateDate);
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+  if (diffDays <= 14) return 100; // within 2 weeks: bonus
+  if (diffDays <= 30) return 80;
+  if (diffDays <= 60) return 60;
+  if (diffDays <= 90) return 40;
+  return 20; // 2+ months apart: penalty
+}
+
+/**
+ * Compute social compatibility score combining introvert/extrovert, guests, noise.
+ */
+function computeSocialScore(seeker, candidate) {
+  const noiseMap = { low: 1, medium: 2, high: 3 };
+  const guestMap = { low: 1, medium: 2, high: 3 };
+
+  const seekerSocial = (seeker.introvertExtrovertScale || 3) +
+    (guestMap[seeker.guestsFrequency] || 2) +
+    (noiseMap[seeker.noiseTolerance] || 2);
+  const candidateSocial = (candidate.introvertExtrovertScale || 3) +
+    (guestMap[candidate.guestsFrequency] || 2) +
+    (noiseMap[candidate.noiseTolerance] || 2);
+
+  const diff = Math.abs(seekerSocial - candidateSocial);
+  // Max possible diff = (5+3+3) - (1+1+1) = 8
+  return Math.max(0, Math.round(100 - (diff / 8) * 100));
+}
+
+/**
+ * Compute hobby similarity with category-based partial credit.
+ */
+function computeHobbyScore(seeker, candidate) {
+  const seekerHobbies = (seeker.hobbies || []).map(h => h.toLowerCase());
+  const candidateHobbies = (candidate.hobbies || []).map(h => h.toLowerCase());
+
+  if (seekerHobbies.length === 0 || candidateHobbies.length === 0) return 50;
+
+  let totalPoints = 0;
+  const maxPoints = seekerHobbies.length * 10;
+
+  seekerHobbies.forEach(sh => {
+    if (candidateHobbies.includes(sh)) {
+      totalPoints += 10; // exact match
+    } else {
+      const shCategory = getHobbyCategory(sh);
+      const hasSameCategory = candidateHobbies.some(ch => getHobbyCategory(ch) === shCategory && shCategory !== 'other');
+      if (hasSameCategory) totalPoints += 5; // category match = partial credit
+    }
+  });
+
+  return Math.min(100, Math.round((totalPoints / maxPoints) * 100));
+}
+
+/**
+ * Get match tier based on score.
+ */
+function getMatchTier(score) {
+  if (score >= 85) return { tier: 'Perfect Match', emoji: '🏆', description: 'This is your ideal roommate', color: 'green' };
+  if (score >= 70) return { tier: 'Great Match', emoji: '✅', description: 'Strong compatibility', color: 'emerald' };
+  if (score >= 50) return { tier: 'Good Match', emoji: '🟡', description: 'Works with some adjustments', color: 'yellow' };
+  if (score >= 30) return { tier: 'Fair Match', emoji: '🟠', description: 'Significant differences', color: 'orange' };
+  return { tier: 'Poor Match', emoji: '🔴', description: 'Not recommended', color: 'red' };
+}
+
+/**
+ * Generate top 3 reasons this match works (or doesn't).
+ */
+function generateTopReasons(seeker, candidate, breakdown, score) {
+  const reasons = [];
+
+  // Positive reasons
+  if (breakdown.intentAlignment?.score >= 70) {
+    reasons.push({ type: 'positive', text: `Both in "${candidate.lifeIntent?.lifeMode || 'balanced'}" mode — aligned life phase.` });
+  }
+  if (breakdown.lifestyleCompatibility?.score >= 70) {
+    reasons.push({ type: 'positive', text: 'Highly compatible daily lifestyle habits.' });
+  }
+  if (breakdown.socialCompatibility?.score >= 70) {
+    reasons.push({ type: 'positive', text: 'Matching social energy — similar preferences for guests and noise.' });
+  }
+  if (breakdown.hobbyCompatibility?.score >= 60) {
+    const sharedHobbies = (seeker.hobbies || []).filter(h => (candidate.hobbies || []).map(c => c.toLowerCase()).includes(h.toLowerCase()));
+    if (sharedHobbies.length > 0) {
+      reasons.push({ type: 'positive', text: `Shared hobbies: ${sharedHobbies.slice(0, 3).join(', ')}.` });
+    } else {
+      reasons.push({ type: 'positive', text: 'Similar hobby interests and activity preferences.' });
+    }
+  }
+  if (breakdown.budgetOverlap?.score >= 80) {
+    reasons.push({ type: 'positive', text: 'Excellent budget alignment.' });
+  }
+  if (breakdown.locationMatch?.score === 100) {
+    reasons.push({ type: 'positive', text: `Both in ${seeker.location?.city} — same city!` });
+  }
+
+  // Negative reasons
+  if (breakdown.intentAlignment?.score < 40) {
+    reasons.push({ type: 'negative', text: 'Different life modes may cause friction.' });
+  }
+  if (breakdown.lifestyleCompatibility?.score < 40) {
+    reasons.push({ type: 'negative', text: 'Notable lifestyle differences to work through.' });
+  }
+  if (breakdown.budgetOverlap?.score < 30) {
+    reasons.push({ type: 'negative', text: 'Budget ranges have limited overlap.' });
+  }
+
+  // Sort: positives first
+  reasons.sort((a, b) => (a.type === 'positive' ? -1 : 1));
+
+  return reasons.slice(0, 3);
+}
 
 function computeMatchScore(seeker, candidate) {
   const breakdown = {};
   let totalScore = 0;
   let totalWeight = 0;
 
-  // ── 1. LIFE INTENT ALIGNMENT (weight: 30) ──
-  const intentWeight = 30;
+  // ── 1. LIFE INTENT ALIGNMENT (weight: 25) ──
+  const intentWeight = 25;
   let intentScore = 0;
 
-  // lifeMode alignment
   const seekerMode = seeker.lifeIntent?.lifeMode || 'balanced';
   const candidateMode = candidate.lifeIntent?.lifeMode || 'balanced';
 
@@ -23,62 +204,54 @@ function computeMatchScore(seeker, candidate) {
   } else if (seekerMode === 'balanced' || candidateMode === 'balanced') {
     intentScore += 25;
   } else {
-    // growth vs chill = high friction
     intentScore += 5;
   }
 
-  // struggleStabilityScale alignment (closer = better)
   const seekerSS = seeker.lifeIntent?.struggleStabilityScale || 3;
   const candidateSS = candidate.lifeIntent?.struggleStabilityScale || 3;
   const ssDiff = Math.abs(seekerSS - candidateSS);
   intentScore += Math.max(0, 30 - ssDiff * 8);
 
-  // shared life goals
   const seekerGoals = seeker.lifeIntent?.lifeGoals || [];
   const candidateGoals = candidate.lifeIntent?.lifeGoals || [];
   const sharedGoals = seekerGoals.filter(g => candidateGoals.includes(g));
   intentScore += Math.min(sharedGoals.length * 10, 30);
 
   breakdown.intentAlignment = {
-    score: Math.round(intentScore),
+    score: Math.round(Math.min(100, intentScore)),
     max: 100,
     details: { seekerMode, candidateMode, ssDiff, sharedGoals }
   };
-  totalScore += (intentScore / 100) * intentWeight;
+  totalScore += (Math.min(100, intentScore) / 100) * intentWeight;
   totalWeight += intentWeight;
 
   // ── 2. LIFESTYLE COMPATIBILITY (weight: 25) ──
   const lifestyleWeight = 25;
   let lifestyleScore = 0;
 
-  // Cleanliness (closer = better)
   const cleanDiff = Math.abs(
     (seeker.cleanlinessLevel || 3) - (candidate.cleanlinessLevel || 3)
   );
   lifestyleScore += Math.max(0, 25 - cleanDiff * 7);
 
-  // Sleep schedule
   const seekerSleep = seeker.sleepSchedule || 'flexible';
   const candidateSleep = candidate.sleepSchedule || 'flexible';
   if (seekerSleep === candidateSleep) lifestyleScore += 20;
   else if (seekerSleep === 'flexible' || candidateSleep === 'flexible') lifestyleScore += 12;
   else lifestyleScore += 2;
 
-  // Smoking / Drinking dealbreaker check
   if (seeker.smoking !== candidate.smoking) lifestyleScore -= 5;
   else lifestyleScore += 15;
 
   if (seeker.drinking !== candidate.drinking) lifestyleScore -= 2;
   else lifestyleScore += 10;
 
-  // Noise tolerance alignment
   const noiseMap = { low: 1, medium: 2, high: 3 };
   const noiseDiff = Math.abs(
     (noiseMap[seeker.noiseTolerance] || 2) - (noiseMap[candidate.noiseTolerance] || 2)
   );
   lifestyleScore += Math.max(0, 15 - noiseDiff * 7);
 
-  // Guests frequency
   const guestMap = { low: 1, medium: 2, high: 3 };
   const guestDiff = Math.abs(
     (guestMap[seeker.guestsFrequency] || 2) - (guestMap[candidate.guestsFrequency] || 2)
@@ -94,39 +267,34 @@ function computeMatchScore(seeker, candidate) {
   totalScore += (lifestyleScore / 100) * lifestyleWeight;
   totalWeight += lifestyleWeight;
 
-  // ── 3. PERSONALITY FIT (weight: 15) ──
-  const personalityWeight = 15;
-  let personalityScore = 0;
+  // ── 3. SOCIAL COMPATIBILITY (weight: 20) ──
+  const socialWeight = 20;
+  const socialScore = computeSocialScore(seeker, candidate);
 
-  // introvert/extrovert: some difference is OK, extremes clash
-  const ieDiff = Math.abs(
-    (seeker.introvertExtrovertScale || 3) - (candidate.introvertExtrovertScale || 3)
-  );
-  personalityScore += Math.max(0, 50 - ieDiff * 12);
-
-  // Weekend style
+  // Weekend style bonus (additional 0-20 points)
   const seekerWknd = seeker.weekendStyle || 'mixed';
   const candidateWknd = candidate.weekendStyle || 'mixed';
-  if (seekerWknd === candidateWknd) personalityScore += 30;
-  else if (seekerWknd === 'mixed' || candidateWknd === 'mixed') personalityScore += 20;
-  else personalityScore += 5;
+  let weekendBonus = 0;
+  if (seekerWknd === candidateWknd) weekendBonus = 20;
+  else if (seekerWknd === 'mixed' || candidateWknd === 'mixed') weekendBonus = 10;
 
-  // Shared hobbies bonus
-  const seekerHobbies = (seeker.hobbies || []).map(h => h.toLowerCase());
-  const candidateHobbies = (candidate.hobbies || []).map(h => h.toLowerCase());
-  const sharedHobbies = seekerHobbies.filter(h => candidateHobbies.includes(h));
-  personalityScore += Math.min(sharedHobbies.length * 7, 20);
+  // Social score is 80% of raw social + 20% weekend style
+  const combinedPersonalitySocial = Math.min(100, Math.round((socialScore * 0.8) + weekendBonus));
 
-  personalityScore = Math.min(100, personalityScore);
-  breakdown.personalityFit = {
-    score: Math.round(personalityScore),
+  breakdown.socialCompatibility = {
+    score: combinedPersonalitySocial,
     max: 100,
-    details: { ieDiff, weekendMatch: seekerWknd === candidateWknd, sharedHobbies }
+    details: { socialScore, weekendBonus, ieDiff: Math.abs((seeker.introvertExtrovertScale || 3) - (candidate.introvertExtrovertScale || 3)) }
   };
-  totalScore += (personalityScore / 100) * personalityWeight;
-  totalWeight += personalityWeight;
+  totalScore += (combinedPersonalitySocial / 100) * socialWeight;
+  totalWeight += socialWeight;
 
-  // ── 4. BUDGET OVERLAP (weight: 15) ──
+  // ── 4. HOBBY COMPATIBILITY (included in personality, separate breakdown) ──
+  const hobbyScore = computeHobbyScore(seeker, candidate);
+  breakdown.hobbyCompatibility = { score: hobbyScore, max: 100 };
+  // Hobby contributes to social weight (already counted, just for display)
+
+  // ── 5. BUDGET OVERLAP (weight: 15) ──
   const budgetWeight = 15;
   let budgetScore = 0;
 
@@ -147,7 +315,7 @@ function computeMatchScore(seeker, candidate) {
   totalScore += (budgetScore / 100) * budgetWeight;
   totalWeight += budgetWeight;
 
-  // ── 5. LOCATION MATCH (weight: 10) ──
+  // ── 6. LOCATION MATCH (weight: 10) ──
   const locationWeight = 10;
   let locationScore = 0;
 
@@ -163,29 +331,12 @@ function computeMatchScore(seeker, candidate) {
   totalScore += (locationScore / 100) * locationWeight;
   totalWeight += locationWeight;
 
-  // ── 6. CULTURAL OPENNESS (weight: 5) ──
-  const culturalWeight = 5;
-  let culturalScore = 50; // neutral default
-
-  const seekerCultural = seeker.culturalOpenness?.culturalPreference || 'mixed';
-  const candidateCultural = candidate.culturalOpenness?.culturalPreference || 'mixed';
-  const seekerStatePref = seeker.culturalOpenness?.sameStatePreference || 'open_to_all';
-
-  const sameState = seeker.location?.state?.toLowerCase() === candidate.location?.state?.toLowerCase();
-
-  if (seekerStatePref === 'same_state_only' && !sameState) {
-    culturalScore = 10;
-  } else if (seekerCultural === 'explorer' || candidateCultural === 'explorer') {
-    culturalScore = 85;
-  } else if (seekerCultural === candidateCultural) {
-    culturalScore = 80;
-  } else {
-    culturalScore = 50;
-  }
-
-  breakdown.culturalOpenness = { score: culturalScore, max: 100, details: { seekerCultural, candidateCultural, sameState } };
-  totalScore += (culturalScore / 100) * culturalWeight;
-  totalWeight += culturalWeight;
+  // ── 7. MOVE-IN TIMING (weight: 5) ──
+  const timingWeight = 5;
+  const timingScore = computeTimingScore(seeker, candidate);
+  breakdown.moveInTiming = { score: timingScore, max: 100 };
+  totalScore += (timingScore / 100) * timingWeight;
+  totalWeight += timingWeight;
 
   // ── FINAL ──
   const finalScore = Math.round((totalScore / totalWeight) * 100);
@@ -322,10 +473,16 @@ function predictConflicts(seeker, candidate) {
 function findMatches(seeker, candidates, rooms = []) {
   const results = candidates
     .filter(c => c._id.toString() !== seeker._id.toString())
+    .filter(candidate => {
+      const { violated } = isDealbreakerViolation(seeker, candidate);
+      return !violated;
+    })
     .map(candidate => {
       const { finalScore, breakdown } = computeMatchScore(seeker, candidate);
       const conflicts = predictConflicts(seeker, candidate);
       const explanations = explanation.generateExplanations(seeker, candidate, breakdown, conflicts);
+      const tier = getMatchTier(finalScore);
+      const topReasons = generateTopReasons(seeker, candidate, breakdown, finalScore);
 
       // Find rooms where this candidate is a current roommate
       const linkedRooms = rooms.filter(r =>
@@ -343,9 +500,12 @@ function findMatches(seeker, candidates, rooms = []) {
           occupation: candidate.occupation,
           location: candidate.location,
           lifeIntent: candidate.lifeIntent,
-          hobbies: candidate.hobbies
+          hobbies: candidate.hobbies,
+          avatar: candidate.avatar
         },
         matchScore: finalScore,
+        tier,
+        topReasons,
         breakdown,
         conflicts,
         explanations,
@@ -363,4 +523,4 @@ function findMatches(seeker, candidates, rooms = []) {
   return results;
 }
 
-module.exports = { computeMatchScore, predictConflicts, findMatches };
+module.exports = { computeMatchScore, predictConflicts, findMatches, getMatchTier, isDealbreakerViolation };

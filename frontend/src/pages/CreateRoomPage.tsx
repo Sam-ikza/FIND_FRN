@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import RoomForm from '../components/RoomForm';
 import { useRoomStore } from '../store/roomStore';
 import { useUserStore } from '../store/userStore';
@@ -13,8 +14,9 @@ export default function CreateRoomPage() {
   if (!currentUser) {
     return (
       <div className="max-w-xl mx-auto text-center py-16 space-y-4">
-        <p className="text-gray-500">Please create or select a profile first.</p>
-        <a href="/profile" className="text-brand-600 hover:underline">Go to Profile</a>
+        <div className="text-5xl">👤</div>
+        <p className="text-gray-500 dark:text-gray-400">Please create or select a profile first.</p>
+        <a href="/profile" className="text-brand-600 dark:text-brand-400 hover:underline">Go to Profile</a>
       </div>
     );
   }
@@ -23,17 +25,20 @@ export default function CreateRoomPage() {
     setSubmitting(true);
     try {
       await createRoom(data);
+      toast.success('Room posted successfully! 🏠');
       navigate('/rooms');
     } catch (e) {
       console.error(e);
+      toast.error('Failed to post room. Please try again.');
     }
     setSubmitting(false);
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-xl border p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Post a Room</h1>
+    <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Post a Room</h1>
       <RoomForm onSubmit={handleSubmit} submitting={submitting} />
     </div>
   );
 }
+
