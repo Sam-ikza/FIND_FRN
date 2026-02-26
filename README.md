@@ -1,181 +1,200 @@
-# 🏠 RoomSync — Find Your Ideal Roommate
+# 🪺 NestBud
 
-RoomSync is a smart roommate-finding platform that matches you based on **life intent**, lifestyle compatibility, and personality — not just budget. It predicts conflicts before you move in and explains why a match works.
+**Find your bud, find your nest.**
 
----
+NestBud is an intelligent roommate-matching platform that goes beyond budget filters — matching people by life intent, lifestyle, and personality, with built-in conflict prediction and explainable scores.
 
 ## ✨ Features
 
-- **🎯 Intent Alignment**: Matches based on life mode (growth/chill/balanced), life goals, and energy levels
-- **⚡ Conflict Prediction**: Identifies potential friction points before you commit
-- **💡 Explainable Matching**: Every score comes with human-readable reasons
-- **🔐 Dealbreaker System**: Hard filters (no smokers, gender preference, budget limits)
-- **🏆 Match Tier System**: Perfect → Great → Good → Fair → Poor
-- **🌙 Dark Mode**: Fully responsive dark theme with persistence
-- **📱 Mobile-First**: Responsive design from 320px to 1440px+
-- **🔑 Authentication**: JWT-based signup/login with password reset
+- **🎯 Smart Matching** — Matches based on life intent, lifestyle, budget, location, and cultural compatibility
+- **⚡ Conflict Prediction** — Simulates daily friction before you commit to living together
+- **💡 Explainable Scores** — Every match comes with human-readable reasons
+- **🗺️ Map View** — Browse available rooms on an interactive map
+- **📷 Image Uploads** — Upload room photos via Cloudinary
+- **❤️ Save Matches** — Bookmark your favorite roommate matches
+- **💬 Real-Time Chat** — Socket.IO powered messaging between users
+- **🔔 Notifications** — In-app notification bell for match requests, messages, etc.
+- **📊 Dashboard** — Personal stats, saved matches, and your posted rooms
+- **📱 PWA Support** — Installable as a Progressive Web App
+- **📖 Swagger Docs** — Full API documentation at `/api/docs`
+- **🔐 Dealbreaker System** — Hard filters for smokers, gender preference, budget
 
----
+## 🛠 Tech Stack
 
-## 🛠️ Tech Stack
-
-### Frontend
+**Frontend:**
 - React 18 + TypeScript
-- Vite
-- Tailwind CSS (with dark mode)
-- Framer Motion (animations)
+- Vite + Tailwind CSS
+- Framer Motion
 - Zustand (state management)
 - React Router v6
-- Axios
-- React Hot Toast
+- React Leaflet (map view)
+- Embla Carousel (image gallery)
+- Recharts (charts & radar)
+- Socket.IO Client
+- PWA via vite-plugin-pwa
 
-### Backend
+**Backend:**
 - Node.js + Express
 - MongoDB + Mongoose
-- JWT Authentication (jsonwebtoken)
-- bcryptjs (password hashing)
-- compression + express-rate-limit
-
----
+- Socket.IO (real-time chat)
+- Multer + Cloudinary (image uploads)
+- JWT Authentication
+- Swagger / OpenAPI docs
+- Rate limiting + compression
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 18+
 - MongoDB (local or Atlas)
+- (Optional) Cloudinary account for image uploads
 
-### Backend Setup
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edit .env with your values
-npm run dev
-```
-
-### Frontend Setup
+### Installation
 
 ```bash
-cd frontend
-npm install
-npm run dev
+# Install all dependencies
+npm run install:all
+
+# Or separately:
+cd backend && npm install
+cd frontend && npm install
 ```
 
-The frontend will be available at `http://localhost:5173` and the API at `http://localhost:5000`.
+### Configuration
 
----
+Copy and configure environment files:
 
-## 🔧 Environment Variables
+```bash
+# Backend
+cp backend/.env.example backend/.env
 
-Copy `backend/.env.example` to `backend/.env`:
+# Frontend
+cp frontend/.env.example frontend/.env
+```
 
-```env
+Edit `backend/.env`:
+```
 PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/roommate_platform
-JWT_SECRET=your_jwt_secret_key_here
+MONGO_URI=mongodb://127.0.0.1:27017/nestbud
+JWT_SECRET=your_jwt_secret_here
 JWT_EXPIRES_IN=7d
+NODE_ENV=development
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+FRONTEND_URL=http://localhost:5173
 ```
 
----
+### Seed Data
 
-## 📡 API Documentation
-
-### Auth
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/signup` | Register with name, email, password |
-| POST | `/api/auth/login` | Login, returns JWT token |
-| POST | `/api/auth/forgot-password` | Generate password reset token |
-| POST | `/api/auth/reset-password/:token` | Reset password with token |
-| GET | `/api/auth/me` | Get current user (requires token) |
-| POST | `/api/auth/logout` | Logout |
-
-### Users
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users` | List all users |
-| GET | `/api/users/:id` | Get user by ID |
-| POST | `/api/users` | Create user profile |
-| PUT | `/api/users/:id` | Update user profile |
-| DELETE | `/api/users/:id` | Delete user |
-
-### Rooms
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/rooms` | List all rooms |
-| GET | `/api/rooms/:id` | Get room by ID |
-| POST | `/api/rooms` | Create room listing |
-| PUT | `/api/rooms/:id` | Update room |
-| DELETE | `/api/rooms/:id` | Delete room |
-
-### Matching
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/match` | Find matches for a user (body: `{ userId }`) |
-| POST | `/api/recommendations/:userId` | Get room & user recommendations |
-
-### Utilities
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
-
----
-
-## 🧠 How the Matching Algorithm Works
-
-The algorithm scores compatibility across 7 dimensions:
-
-| Factor | Weight | Description |
-|--------|--------|-------------|
-| Life Intent Alignment | 25% | Life mode, goals, energy, struggle/stability scale |
-| Lifestyle Compatibility | 25% | Sleep, cleanliness, smoking, drinking, guests, noise |
-| Social Compatibility | 20% | Introvert/extrovert + guests + noise combined metric |
-| Budget Overlap | 15% | Overlap of budget ranges |
-| Location Match | 10% | Same city > same state > different |
-| Move-in Timing | 5% | Proximity of desired move-in dates |
-| Hobby Compatibility | display | Category-based partial matching |
-
-### Dealbreaker System (Hard Filters)
-Before scoring, candidates are filtered out if they violate any dealbreaker:
-- Smoker when seeker requires no smokers
-- Zero budget overlap
-- Gender preference mismatch
-- Candidate budget exceeds max budget setting
-- Different city when same city required
-
-### Match Tiers
-- 🏆 **Perfect Match** (85-100): Ideal roommate
-- ✅ **Great Match** (70-84): Strong compatibility
-- 🟡 **Good Match** (50-69): Works with adjustments
-- 🟠 **Fair Match** (30-49): Significant differences
-- 🔴 **Poor Match** (0-29): Not recommended
-
----
-
-## 🚀 Deployment
-
-### Frontend (Vercel/Netlify)
 ```bash
-cd frontend && npm run build
-# Deploy the `dist` folder
+npm run seed
+# or: cd backend && node seed.js
 ```
 
-### Backend (Railway/Render/Heroku)
+### Development
+
 ```bash
-cd backend && npm start
+# Run both frontend and backend
+npm run dev
+
+# Or separately:
+cd backend && npm start        # http://localhost:5000
+cd frontend && npm run dev     # http://localhost:3000
 ```
 
-Set environment variables on your hosting platform as per `.env.example`.
+### API Documentation
 
----
+Once the backend is running, visit: `http://localhost:5000/api/docs`
 
-## 📸 Screenshots
+## 📁 Project Structure
 
-*(Add screenshots of the app here)*
+```
+nestbud/
+├── backend/
+│   ├── config/
+│   │   ├── db.js
+│   │   ├── cloudinary.js
+│   │   └── swagger.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   └── upload.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Room.js
+│   │   ├── Message.js
+│   │   └── Notification.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── users.js
+│   │   ├── rooms.js
+│   │   ├── match.js
+│   │   ├── messages.js
+│   │   ├── notifications.js
+│   │   └── upload.js
+│   ├── services/
+│   │   ├── chat.js
+│   │   ├── matching.js
+│   │   └── explanation.js
+│   └── server.js
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── MatchCard.tsx
+│   │   │   ├── MatchRadarChart.tsx
+│   │   │   ├── RoomCard.tsx
+│   │   │   ├── RoomForm.tsx
+│   │   │   ├── RoomMap.tsx
+│   │   │   ├── RoomFilters.tsx
+│   │   │   ├── ChatBubble.tsx
+│   │   │   └── NotificationBell.tsx
+│   │   ├── pages/
+│   │   │   ├── Home.tsx
+│   │   │   ├── RoomsPage.tsx
+│   │   │   ├── RoomDetailPage.tsx
+│   │   │   ├── MatchPage.tsx
+│   │   │   ├── SavedMatchesPage.tsx
+│   │   │   ├── ChatPage.tsx
+│   │   │   ├── DashboardPage.tsx
+│   │   │   └── ...
+│   │   ├── store/
+│   │   ├── utils/
+│   │   └── types/
+│   └── index.html
+├── Procfile
+└── package.json
+```
 
----
+## 🔑 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Register new user |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/rooms` | List rooms (with filters) |
+| GET | `/api/rooms/map` | Rooms with coordinates |
+| POST | `/api/rooms` | Create room |
+| POST | `/api/match` | Find roommate matches |
+| POST | `/api/upload` | Upload image |
+| GET | `/api/messages/:roomId` | Get chat messages |
+| GET | `/api/notifications/:userId` | Get notifications |
+| POST | `/api/users/:id/save-match` | Save a match |
+| GET | `/api/docs` | Swagger UI |
+
+## 🌐 Deployment
+
+The app is configured for Heroku-style deployment via `Procfile`.
+
+```bash
+# Build frontend
+npm run build
+
+# Start production server
+npm start
+```
 
 ## 📄 License
 
-MIT
+MIT © 2026 NestBud

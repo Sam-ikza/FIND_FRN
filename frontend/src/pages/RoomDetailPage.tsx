@@ -1,7 +1,54 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import useEmblaCarousel from 'embla-carousel-react';
 import * as api from '../utils/api';
 import type { Room } from '../types';
+
+function ImageGallery({ images }: { images: string[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on('select', () => setSelectedIndex(emblaApi.selectedScrollSnap()));
+  }, [emblaApi]);
+
+  if (images.length === 0) {
+    return (
+      <div className="h-64 bg-gradient-to-br from-amber-400 via-orange-400 to-teal-400 dark:from-amber-700 dark:via-orange-700 dark:to-teal-700 rounded-xl flex items-center justify-center text-7xl">
+        🪺
+      </div>
+    );
+  }
+
+  if (images.length === 1) {
+    return <img src={images[0]} alt="Room" className="w-full h-64 object-cover rounded-xl" />;
+  }
+
+  return (
+    <div className="relative">
+      <div ref={emblaRef} className="overflow-hidden rounded-xl">
+        <div className="flex">
+          {images.map((img, i) => (
+            <div key={i} className="flex-none w-full">
+              <img src={img} alt={`Room ${i + 1}`} className="w-full h-64 object-cover" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <button onClick={scrollPrev} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70">‹</button>
+      <button onClick={scrollNext} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70">›</button>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+        {images.map((_, i) => (
+          <div key={i} className={`w-2 h-2 rounded-full transition-colors ${i === selectedIndex ? 'bg-white' : 'bg-white/50'}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function RoomDetailPage() {
   const { id } = useParams();
@@ -16,7 +63,7 @@ export default function RoomDetailPage() {
 
   if (loading) return (
     <div className="max-w-3xl mx-auto space-y-4 animate-pulse">
-      <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+      <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-xl" />
       <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
     </div>
@@ -27,11 +74,9 @@ export default function RoomDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 space-y-6">
-      <Link to="/rooms" className="text-sm text-brand-600 dark:text-brand-400 hover:underline">&larr; Back to rooms</Link>
+      <Link to="/rooms" className="text-sm text-amber-600 dark:text-amber-400 hover:underline">&larr; Back to rooms</Link>
 
-      <div className="h-48 bg-gradient-to-br from-brand-400 via-purple-400 to-pink-400 dark:from-brand-700 dark:via-purple-700 dark:to-pink-700 rounded-xl flex items-center justify-center text-6xl">
-        🏠
-      </div>
+      <ImageGallery images={room.images || []} />
 
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{room.title}</h1>
@@ -39,7 +84,7 @@ export default function RoomDetailPage() {
       </div>
 
       <div className="flex flex-wrap gap-4">
-        <div className="bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-400 px-4 py-2 rounded-lg font-semibold">₹{room.rent.toLocaleString()}/mo</div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-lg font-semibold">₹{room.rent.toLocaleString()}/mo</div>
         <div className={`px-4 py-2 rounded-lg font-medium ${room.vacancyType === 'single' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'}`}>
           {room.vacancyType === 'single' ? 'Single Room' : 'Shared'}
         </div>
@@ -83,4 +128,3 @@ export default function RoomDetailPage() {
     </div>
   );
 }
-

@@ -54,4 +54,46 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// POST save a match
+router.post('/:id/save-match', async (req, res) => {
+  try {
+    const { matchUserId } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $addToSet: { savedMatches: matchUserId } },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ savedMatches: user.savedMatches });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE unsave a match
+router.delete('/:id/save-match/:matchUserId', async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { savedMatches: req.params.matchUserId } },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ savedMatches: user.savedMatches });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET saved matches
+router.get('/:id/saved-matches', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).populate('savedMatches');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user.savedMatches);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

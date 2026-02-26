@@ -15,6 +15,9 @@ const SignupPage = lazy(() => import('./pages/SignupPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const SavedMatchesPage = lazy(() => import('./pages/SavedMatchesPage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 
 function PageSkeleton() {
   return (
@@ -53,6 +56,10 @@ export default function App() {
                 <Route path="/rooms/new" element={<CreateRoomPage />} />
                 <Route path="/rooms/:id" element={<RoomDetailPage />} />
                 <Route path="/match" element={<MatchPage />} />
+                <Route path="/saved" element={<SavedMatchesPage />} />
+                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/chat/:roomId" element={<ChatPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
