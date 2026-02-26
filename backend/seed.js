@@ -191,9 +191,8 @@ async function seed() {
       {
         title: 'Sunny 2BHK near Koramangala',
         rent: 12000,
-        location: { city: 'Bengaluru', state: 'Karnataka' },
+        location: { city: 'Bengaluru', state: 'Karnataka', lat: 12.9279, lng: 77.6271 },
         amenities: ['WiFi', 'AC', 'Washing Machine', 'Kitchen'],
-        images: [],
         vacancyType: 'shared',
         availableFrom: new Date('2026-03-01'),
         currentRoommates: [createdUsers[0]._id],
@@ -203,9 +202,8 @@ async function seed() {
       {
         title: 'Quiet PG near Indiranagar',
         rent: 8000,
-        location: { city: 'Bengaluru', state: 'Karnataka' },
+        location: { city: 'Bengaluru', state: 'Karnataka', lat: 12.9784, lng: 77.6408 },
         amenities: ['WiFi', 'Meals', 'Laundry'],
-        images: [],
         vacancyType: 'single',
         availableFrom: new Date('2026-03-15'),
         currentRoommates: [createdUsers[1]._id],
@@ -215,9 +213,8 @@ async function seed() {
       {
         title: 'Modern flat in Whitefield',
         rent: 15000,
-        location: { city: 'Bengaluru', state: 'Karnataka' },
+        location: { city: 'Bengaluru', state: 'Karnataka', lat: 12.9698, lng: 77.7499 },
         amenities: ['WiFi', 'AC', 'Gym', 'Pool', 'Kitchen'],
-        images: [],
         vacancyType: 'shared',
         availableFrom: new Date('2026-04-01'),
         currentRoommates: [createdUsers[2]._id],
@@ -227,9 +224,8 @@ async function seed() {
       {
         title: 'Cozy room in Andheri West',
         rent: 14000,
-        location: { city: 'Mumbai', state: 'Maharashtra' },
+        location: { city: 'Mumbai', state: 'Maharashtra', lat: 19.1136, lng: 72.8697 },
         amenities: ['WiFi', 'AC', 'Kitchen'],
-        images: [],
         vacancyType: 'shared',
         availableFrom: new Date('2026-03-01'),
         currentRoommates: [createdUsers[4]._id],

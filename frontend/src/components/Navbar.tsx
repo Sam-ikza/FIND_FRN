@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useUserStore } from '../store/userStore';
 import { useThemeStore } from '../store/themeStore';
 import { useAuthStore } from '../store/authStore';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const location = useLocation();
@@ -19,6 +20,9 @@ export default function Navbar() {
     { to: '/profile', label: 'Profile' },
     { to: '/rooms', label: 'Rooms' },
     { to: '/match', label: 'Find Match' },
+    { to: '/saved', label: '❤️ Saved' },
+    { to: '/chat', label: '💬 Chat' },
+    { to: '/dashboard', label: '📊 Dashboard' },
   ];
 
   const handleLogout = () => {
@@ -33,8 +37,8 @@ export default function Navbar() {
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-2 text-xl font-bold text-brand-700 dark:text-brand-400">
-          <span className="text-2xl">🏠</span> RoomSync
+        <Link to="/" className="flex items-center gap-2 text-xl font-bold text-amber-600 dark:text-amber-400">
+          <span className="text-2xl">🪺</span> NestBud
         </Link>
 
         {/* Desktop nav */}
@@ -67,6 +71,8 @@ export default function Navbar() {
             {isDark ? '☀️' : '🌙'}
           </motion.button>
 
+          <NotificationBell />
+
           {/* Auth section */}
           {isAuthenticated && authUser ? (
             <div className="hidden md:flex items-center gap-2">
@@ -91,7 +97,7 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/signup"
-                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-brand-600 to-purple-600 rounded-lg hover:opacity-90 transition-opacity min-h-[44px] flex items-center"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-amber-500 to-teal-500 rounded-lg hover:opacity-90 transition-opacity min-h-[44px] flex items-center"
               >
                 Sign Up
               </Link>

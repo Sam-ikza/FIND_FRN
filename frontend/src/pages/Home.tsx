@@ -51,14 +51,18 @@ export default function Home() {
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           className="text-7xl mb-6"
         >
-          🏠
+          🪺
         </motion.div>
 
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
-          Room<span className="bg-gradient-to-r from-brand-600 to-purple-600 bg-clip-text text-transparent">Sync</span>
+          Nest<span className="bg-gradient-to-r from-amber-500 to-teal-500 bg-clip-text text-transparent">Bud</span>
         </h1>
 
-        <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto mb-10">
+        <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto mb-4">
+          Find your bud, find your nest.
+        </p>
+
+        <p className="text-lg text-gray-500 dark:text-gray-400 leading-relaxed max-w-2xl mx-auto mb-10">
           Find roommates who match your <strong className="text-gray-800 dark:text-white">life intent</strong>, not just your budget.
           We predict conflicts before they happen and explain <em>why</em> a match works.
         </p>
@@ -67,7 +71,7 @@ export default function Home() {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/profile"
-              className="inline-block px-8 py-4 bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-brand-200 dark:shadow-brand-900/30 min-h-[44px]"
+              className="inline-block px-8 py-4 bg-gradient-to-r from-amber-500 to-teal-500 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-amber-200 dark:shadow-amber-900/30 min-h-[44px]"
             >
               Create Profile →
             </Link>
@@ -91,7 +95,7 @@ export default function Home() {
           viewport={{ once: true }}
           className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-10"
         >
-          Why RoomSync?
+          Why NestBud?
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f, i) => (
@@ -117,12 +121,12 @@ export default function Home() {
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="max-w-3xl mx-auto px-4 text-center py-12 bg-gradient-to-r from-brand-600 to-purple-600 rounded-2xl"
+        className="max-w-3xl mx-auto px-4 text-center py-12 bg-gradient-to-r from-amber-500 to-teal-500 rounded-2xl"
       >
         <h2 className="text-2xl font-bold text-white mb-3">Ready to find your perfect roommate?</h2>
-        <p className="text-brand-100 mb-6">Join thousands of users who found their ideal living situation with RoomSync.</p>
+        <p className="text-amber-100 mb-6">Join thousands of users who found their ideal living situation with NestBud.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/signup" className="px-6 py-3 bg-white text-brand-700 rounded-xl font-semibold hover:bg-brand-50 transition-colors min-h-[44px] flex items-center justify-center">
+          <Link to="/signup" className="px-6 py-3 bg-white text-amber-700 rounded-xl font-semibold hover:bg-amber-50 transition-colors min-h-[44px] flex items-center justify-center">
             Get Started Free
           </Link>
           <Link to="/match" className="px-6 py-3 border border-white/40 text-white rounded-xl font-semibold hover:bg-white/10 transition-colors min-h-[44px] flex items-center justify-center">

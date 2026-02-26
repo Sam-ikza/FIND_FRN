@@ -1,5 +1,5 @@
 {
-  "name": "roommate-platform-backend",
+  "name": "nestbud-backend",
   "version": "1.0.0",
   "description": "Room & Roommate Finding Platform API",
   "main": "server.js",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -17,7 +18,11 @@
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.2.0"
+    "mongoose": "^8.2.0",
+    "multer": "^2.0.2",
+    "socket.io": "^4.8.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

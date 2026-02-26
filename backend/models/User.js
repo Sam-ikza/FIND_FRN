@@ -77,7 +77,9 @@ const userSchema = new mongoose.Schema({
     genderPreference: { type: String, enum: ['any', 'same_gender', 'male', 'female'], default: 'any' },
     maxBudget: { type: Number },
     sameCity: { type: Boolean, default: false }
-  }
+  },
+
+  savedMatches: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
 // Indexes for frequently queried fields

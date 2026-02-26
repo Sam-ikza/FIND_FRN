@@ -1,11 +1,11 @@
 import axios from 'axios';
 import type { User, Room, MatchResult } from '../types';
 
-const api = axios.create({ baseURL: '/api' });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('roomsync-token');
+  const token = localStorage.getItem('nestbud-token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -20,7 +20,10 @@ export const updateUser = (id: string, data: Partial<User>) => api.put<User>(`/u
 export const deleteUser = (id: string) => api.delete(`/users/${id}`).then(r => r.data);
 
 // Rooms
-export const getRooms = () => api.get<Room[]>('/rooms').then(r => r.data);
+export const getRooms = (params?: Record<string, string>) => {
+  const query = params ? '?' + new URLSearchParams(params).toString() : '';
+  return api.get<Room[]>(`/rooms${query}`).then(r => r.data);
+};
 export const getRoom = (id: string) => api.get<Room>(`/rooms/${id}`).then(r => r.data);
 export const createRoom = (data: Omit<Room, '_id'>) => api.post<Room>('/rooms', data).then(r => r.data);
 export const updateRoom = (id: string, data: Partial<Room>) => api.put<Room>(`/rooms/${id}`, data).then(r => r.data);
@@ -48,4 +51,12 @@ export const resetPassword = (token: string, password: string) =>
   api.post(`/auth/reset-password/${token}`, { password }).then(r => r.data);
 
 export const getMe = () => api.get('/auth/me').then(r => r.data);
+
+// Saved Matches
+export const saveMatch = (userId: string, matchUserId: string) =>
+  api.post(`/users/${userId}/save-match`, { matchUserId }).then(r => r.data);
+export const unsaveMatch = (userId: string, matchUserId: string) =>
+  api.delete(`/users/${userId}/save-match/${matchUserId}`).then(r => r.data);
+export const getSavedMatches = (userId: string) =>
+  api.get(`/users/${userId}/saved-matches`).then(r => r.data);
 

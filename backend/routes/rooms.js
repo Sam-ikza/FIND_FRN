@@ -1,13 +1,55 @@
 const router = require('express').Router();
+const rateLimit = require('express-rate-limit');
 const Room = require('../models/Room');
 
-// GET all rooms
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+router.use(limiter);
+
+// GET all rooms with optional filters
 router.get('/', async (req, res) => {
   try {
-    const rooms = await Room.find()
+    const { city, minRent, maxRent, vacancyType, amenities, sort, search } = req.query;
+    const filter = {};
+
+    if (city) filter['location.city'] = { $regex: city, $options: 'i' };
+    if (vacancyType) filter.vacancyType = vacancyType;
+    if (minRent || maxRent) {
+      filter.rent = {};
+      if (minRent) filter.rent.$gte = Number(minRent);
+      if (maxRent) filter.rent.$lte = Number(maxRent);
+    }
+    if (amenities) {
+      const amenityList = amenities.split(',').map(a => a.trim()).filter(Boolean);
+      if (amenityList.length) filter.amenities = { $all: amenityList };
+    }
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    let sortObj = { createdAt: -1 };
+    if (sort === 'cheapest') sortObj = { rent: 1 };
+    else if (sort === 'expensive') sortObj = { rent: -1 };
+
+    const rooms = await Room.find(filter)
       .populate('currentRoommates', 'name age occupation')
       .populate('postedBy', 'name')
-      .sort({ createdAt: -1 });
+      .sort(sortObj);
+    res.json(rooms);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET rooms for map (returns rooms with lat/lng)
+router.get('/map', async (req, res) => {
+  try {
+    const rooms = await Room.find({ 
+      'location.lat': { $ne: 0 }, 
+      'location.lng': { $ne: 0 } 
+    }).select('title rent location vacancyType _id').lean();
     res.json(rooms);
   } catch (err) {
     res.status(500).json({ error: err.message });

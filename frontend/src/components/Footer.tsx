@@ -6,11 +6,11 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <div className="flex items-center gap-2 text-xl font-bold text-brand-700 dark:text-brand-400 mb-2">
-              <span className="text-2xl">🏠</span> RoomSync
+            <div className="flex items-center gap-2 text-xl font-bold text-amber-600 dark:text-amber-400 mb-2">
+              <span className="text-2xl">🪺</span> NestBud
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Find roommates who match your life intent, not just your budget.
+              Find your bud, find your nest.
             </p>
           </div>
           <div>
@@ -40,7 +40,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-sm text-gray-400 dark:text-gray-500">
-            © {new Date().getFullYear()} RoomSync. All rights reserved.
+            © 2026 NestBud. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xl cursor-pointer hover:scale-110 transition-transform">🐦</span>

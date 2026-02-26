@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import type { MatchResult } from '../types';
+import MatchRadarChart from './MatchRadarChart';
 
 const severityColor: Record<string, string> = {
   low: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-700 dark:text-yellow-300',
@@ -95,8 +96,10 @@ function InitialsAvatar({ name, avatar }: { name: string; avatar?: string }) {
   );
 }
 
-export default function MatchCard({ match, index = 0 }: { match: MatchResult; index?: number }) {
+export default function MatchCard({ match, index = 0, savedMatchIds, onSave, onUnsave }: { match: MatchResult; index?: number; savedMatchIds?: string[]; onSave?: (id: string) => void; onUnsave?: (id: string) => void }) {
   const { candidate, matchScore, breakdown, conflicts, explanations, linkedRooms, tier, topReasons } = match;
+  const [showRadar, setShowRadar] = useState(false);
+  const isSaved = candidate._id ? savedMatchIds?.includes(candidate._id) : false;
 
   return (
     <motion.div
@@ -135,6 +138,13 @@ export default function MatchCard({ match, index = 0 }: { match: MatchResult; in
             </div>
           )}
         </div>
+        <button
+          onClick={() => candidate._id && (isSaved ? onUnsave?.(candidate._id) : onSave?.(candidate._id))}
+          className={`flex-shrink-0 text-xl transition-transform hover:scale-110 ${isSaved ? 'text-red-500' : 'text-gray-300 hover:text-red-400'}`}
+          title={isSaved ? 'Unsave match' : 'Save match'}
+        >
+          {isSaved ? '❤️' : '🤍'}
+        </button>
       </div>
 
       {/* Tier description */}
@@ -161,7 +171,20 @@ export default function MatchCard({ match, index = 0 }: { match: MatchResult; in
 
       {/* Score Breakdown */}
       <div>
-        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Score Breakdown</h4>
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Score Breakdown</h4>
+          {Object.keys(breakdown).length > 0 && (
+            <button
+              onClick={() => setShowRadar(!showRadar)}
+              className="text-xs text-amber-500 hover:text-amber-600 font-medium"
+            >
+              {showRadar ? '📊 Hide Radar' : '📊 View Radar'}
+            </button>
+          )}
+        </div>
+        {showRadar && Object.keys(breakdown).length > 0 && (
+          <MatchRadarChart breakdown={breakdown} />
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {Object.entries(breakdown).map(([key, val]) => (
             <div key={key} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">

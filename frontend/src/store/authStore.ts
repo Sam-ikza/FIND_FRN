@@ -23,13 +23,13 @@ interface AuthStore {
 
 const getStoredToken = () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('roomsync-token');
+  return localStorage.getItem('nestbud-token');
 };
 
 const getStoredUser = (): AuthUser | null => {
   if (typeof window === 'undefined') return null;
   try {
-    const stored = localStorage.getItem('roomsync-user');
+    const stored = localStorage.getItem('nestbud-user');
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -47,8 +47,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ authLoading: true, authError: null });
     try {
       const data = await api.login(email, password);
-      localStorage.setItem('roomsync-token', data.token);
-      localStorage.setItem('roomsync-user', JSON.stringify(data.user));
+      localStorage.setItem('nestbud-token', data.token);
+      localStorage.setItem('nestbud-user', JSON.stringify(data.user));
       set({ token: data.token, authUser: data.user, isAuthenticated: true, authLoading: false });
     } catch (err: any) {
       set({ authError: err.response?.data?.error || 'Login failed', authLoading: false });
@@ -60,8 +60,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ authLoading: true, authError: null });
     try {
       const data = await api.signup(name, email, password);
-      localStorage.setItem('roomsync-token', data.token);
-      localStorage.setItem('roomsync-user', JSON.stringify(data.user));
+      localStorage.setItem('nestbud-token', data.token);
+      localStorage.setItem('nestbud-user', JSON.stringify(data.user));
       set({ token: data.token, authUser: data.user, isAuthenticated: true, authLoading: false });
     } catch (err: any) {
       set({ authError: err.response?.data?.error || 'Signup failed', authLoading: false });
@@ -70,8 +70,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   logout: () => {
-    localStorage.removeItem('roomsync-token');
-    localStorage.removeItem('roomsync-user');
+    localStorage.removeItem('nestbud-token');
+    localStorage.removeItem('nestbud-user');
     set({ token: null, authUser: null, isAuthenticated: false });
   },
 
