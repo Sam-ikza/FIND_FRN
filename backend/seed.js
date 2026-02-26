@@ -192,7 +192,7 @@ async function seed() {
         title: 'Sunny 2BHK near Koramangala',
         rent: 12000,
         location: { city: 'Bengaluru', state: 'Karnataka', lat: 12.9279, lng: 77.6271 },
-        images: [],
+        amenities: ['WiFi', 'AC', 'Washing Machine', 'Kitchen'],
         vacancyType: 'shared',
         availableFrom: new Date('2026-03-01'),
         currentRoommates: [createdUsers[0]._id],
