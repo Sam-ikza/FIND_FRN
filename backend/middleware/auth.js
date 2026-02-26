@@ -3,6 +3,10 @@ const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'roomsync_secret_key';
 
+if (!process.env.JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET is not set. Using default secret. This is insecure in production!');
+}
+
 const protect = async (req, res, next) => {
   let token;
 

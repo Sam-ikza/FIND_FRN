@@ -271,13 +271,14 @@ function computeMatchScore(seeker, candidate) {
   const socialWeight = 20;
   const socialScore = computeSocialScore(seeker, candidate);
 
-  // Weekend style bonus
+  // Weekend style bonus (additional 0-20 points)
   const seekerWknd = seeker.weekendStyle || 'mixed';
   const candidateWknd = candidate.weekendStyle || 'mixed';
   let weekendBonus = 0;
   if (seekerWknd === candidateWknd) weekendBonus = 20;
   else if (seekerWknd === 'mixed' || candidateWknd === 'mixed') weekendBonus = 10;
 
+  // Social score is 80% of raw social + 20% weekend style
   const combinedPersonalitySocial = Math.min(100, Math.round((socialScore * 0.8) + weekendBonus));
 
   breakdown.socialCompatibility = {

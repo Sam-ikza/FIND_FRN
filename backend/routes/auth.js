@@ -8,6 +8,10 @@ const { protect } = require('../middleware/auth');
 const JWT_SECRET = process.env.JWT_SECRET || 'roomsync_secret_key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
+if (!process.env.JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET is not set. Using default secret. This is insecure in production!');
+}
+
 const generateToken = (id) => jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
 // POST /api/auth/signup

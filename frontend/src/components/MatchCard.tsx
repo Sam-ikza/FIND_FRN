@@ -84,7 +84,7 @@ function AnimatedBar({ score }: { score: number }) {
 }
 
 function InitialsAvatar({ name, avatar }: { name: string; avatar?: string }) {
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const initials = name.split(' ').filter(n => n.length > 0).map(n => n[0]).join('').toUpperCase().slice(0, 2);
   if (avatar) {
     return <img src={avatar} alt={name} className="w-12 h-12 rounded-full object-cover" />;
   }

@@ -31,13 +31,25 @@ router.post('/:userId', async (req, res) => {
             score += (avgRoommateScore / 100) * 20;
           }
         }
-        return { room: { _id: room._id, title: room.title, rent: room.rent, location: room.location, vacancyType: room.vacancyType, amenities: room.amenities }, score: Math.round(score) };
+        return {
+          room: {
+            _id: room._id,
+            title: room.title,
+            rent: room.rent,
+            location: room.location,
+            vacancyType: room.vacancyType,
+            amenities: room.amenities
+          },
+          score: Math.round(score)
+        };
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
 
     // "Users like you also matched with..." — find top user matches and get their top matches
-    const allUsers = await User.find({ _id: { $ne: user._id } });
+    const allUsers = await User.find({ _id: { $ne: user._id } })
+      .select('name age occupation location budgetRange lifeIntent hobbies')
+      .limit(50);
     const topMatches = allUsers
       .map(u => ({ user: u, score: computeMatchScore(user, u).finalScore }))
       .sort((a, b) => b.score - a.score)
