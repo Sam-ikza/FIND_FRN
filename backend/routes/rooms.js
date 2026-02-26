@@ -1,5 +1,9 @@
 const router = require('express').Router();
+const rateLimit = require('express-rate-limit');
 const Room = require('../models/Room');
+
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+router.use(limiter);
 
 // GET all rooms with optional filters
 router.get('/', async (req, res) => {
