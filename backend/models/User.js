@@ -1,6 +1,15 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+  // Auth
+  email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
+  password: { type: String, minlength: 6, select: false },
+  avatar: { type: String, default: '' },
+  isVerified: { type: Boolean, default: false },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
+  lastLogin: { type: Date },
+
   // Basic
   name: { type: String, required: true },
   age: { type: Number, required: true },
@@ -59,7 +68,21 @@ const userSchema = new mongoose.Schema({
       enum: ['same_state_only', 'open_to_all'],
       default: 'open_to_all'
     }
+  },
+
+  // Dealbreakers
+  dealbreakers: {
+    noSmokers: { type: Boolean, default: false },
+    noDrinkers: { type: Boolean, default: false },
+    genderPreference: { type: String, enum: ['any', 'same_gender', 'male', 'female'], default: 'any' },
+    maxBudget: { type: Number },
+    sameCity: { type: Boolean, default: false }
   }
 }, { timestamps: true });
+
+// Indexes for frequently queried fields
+userSchema.index({ 'location.city': 1 });
+userSchema.index({ 'budgetRange.min': 1, 'budgetRange.max': 1 });
+userSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('User', userSchema);

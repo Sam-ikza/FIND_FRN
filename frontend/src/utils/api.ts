@@ -3,6 +3,15 @@ import type { User, Room, MatchResult } from '../types';
 
 const api = axios.create({ baseURL: '/api' });
 
+// Attach JWT token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('roomsync-token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Users
 export const getUsers = () => api.get<User[]>('/users').then(r => r.data);
 export const getUser = (id: string) => api.get<User>(`/users/${id}`).then(r => r.data);
@@ -20,3 +29,23 @@ export const deleteRoom = (id: string) => api.delete(`/rooms/${id}`).then(r => r
 // Matching
 export const findMatches = (userId: string) =>
   api.post<{ seeker: any; totalMatches: number; matches: MatchResult[] }>('/match', { userId }).then(r => r.data);
+
+// Recommendations
+export const getRecommendations = (userId: string) =>
+  api.post(`/recommendations/${userId}`).then(r => r.data);
+
+// Auth
+export const login = (email: string, password: string) =>
+  api.post<{ token: string; user: any }>('/auth/login', { email, password }).then(r => r.data);
+
+export const signup = (name: string, email: string, password: string) =>
+  api.post<{ token: string; user: any }>('/auth/signup', { name, email, password }).then(r => r.data);
+
+export const forgotPassword = (email: string) =>
+  api.post('/auth/forgot-password', { email }).then(r => r.data);
+
+export const resetPassword = (token: string, password: string) =>
+  api.post(`/auth/reset-password/${token}`, { password }).then(r => r.data);
+
+export const getMe = () => api.get('/auth/me').then(r => r.data);
+

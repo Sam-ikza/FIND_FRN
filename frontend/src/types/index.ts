@@ -22,12 +22,22 @@ export interface CulturalOpenness {
   sameStatePreference: 'same_state_only' | 'open_to_all';
 }
 
+export interface Dealbreakers {
+  noSmokers?: boolean;
+  noDrinkers?: boolean;
+  genderPreference?: 'any' | 'same_gender' | 'male' | 'female';
+  maxBudget?: number;
+  sameCity?: boolean;
+}
+
 export interface User {
   _id?: string;
   name: string;
   age: number;
   gender: string;
   occupation: string;
+  email?: string;
+  avatar?: string;
   budgetRange: BudgetRange;
   location: Location;
   moveInDate?: string;
@@ -42,6 +52,7 @@ export interface User {
   hobbies: string[];
   lifeIntent: LifeIntent;
   culturalOpenness: CulturalOpenness;
+  dealbreakers?: Dealbreakers;
 }
 
 export interface Room {
@@ -76,11 +87,26 @@ export interface Explanation {
   text: string;
 }
 
+export interface MatchTier {
+  tier: string;
+  emoji: string;
+  description: string;
+  color: string;
+}
+
+export interface TopReason {
+  type: 'positive' | 'negative' | 'neutral';
+  text: string;
+}
+
 export interface MatchResult {
   candidate: Partial<User>;
   matchScore: number;
+  tier?: MatchTier;
+  topReasons?: TopReason[];
   breakdown: Record<string, MatchBreakdownItem>;
   conflicts: Conflict[];
   explanations: Explanation[];
   linkedRooms: Partial<Room>[];
 }
+
