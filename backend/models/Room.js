@@ -18,4 +18,9 @@ const roomSchema = new mongoose.Schema({
   description: { type: String, default: '' }
 }, { timestamps: true });
 
+// Indexes for frequently queried fields
+roomSchema.index({ 'location.city': 1 });
+roomSchema.index({ rent: 1 });
+roomSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Room', roomSchema);
