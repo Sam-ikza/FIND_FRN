@@ -4,8 +4,9 @@
   "description": "NestBud — Find your bud, find your nest.",
   "scripts": {
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "postinstall": "npm run install:all",
     "dev": "concurrently \"cd backend && npm start\" \"cd frontend && npm run dev\"",
-    "build": "cd frontend && npm run build",
+    "build": "cd frontend && npm install && npm run build",
     "start": "cd backend && node server.js",
     "seed": "cd backend && node seed.js"
   },
